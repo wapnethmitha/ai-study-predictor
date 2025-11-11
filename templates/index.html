@@ -3,6 +3,7 @@
 <head>
     <title>Study Hours AI Predictor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,16 +15,40 @@
             <p><strong>Test R²:</strong> {{ r2|round(2) }}</p>
         </div>
 
+        <!-- Chart Section -->
+        <div class="chart-section">
+            {{ chart|safe }}
+        </div>
+
+        <!-- Predictor Section -->
         <div class="predictor">
             <h2>🔮 Predict Your Score</h2>
-            <input type="text" id="hoursInput" placeholder="Enter study hours" step="0.5" min="0" max="10">
+            <input type="text" id="hoursInput" placeholder="Enter study hours (e.g., 5 or five)">
             <button onclick="predict()">Predict</button>
             <div id="result"></div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <h2>💬 Ask Me Anything</h2>
+            <div id="chatBox" class="chat-box">
+                <div class="chat-message bot">
+                    <p>Hi! Ask me questions like:</p>
+                    <ul>
+                        <li>"What if I study 6 hours?"</li>
+                        <li>"How many hours for 80 score?"</li>
+                        <li>"What score for 5 hours?"</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="chat-input-wrapper">
+                <input type="text" id="chatInput" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button onclick="sendChat()">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Word to number mapping
         const wordToNumber = {
             'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
             'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
@@ -38,14 +63,11 @@
                 return;
             }
             
-            // Try to convert text to number
             let hours = parseFloat(hoursInput);
             
-            // If not a number, try word conversion
             if (isNaN(hours)) {
                 hours = wordToNumber[hoursInput];
                 
-                // Handle phrases like "two and half"
                 if (!hours) {
                     for (let word in wordToNumber) {
                         if (hoursInput.includes(word)) {
@@ -57,7 +79,7 @@
             }
             
             if (isNaN(hours) || hours === undefined) {
-                alert('Please enter a valid number or word (e.g., "two", "5.5", "three and half")');
+                alert('Please enter a valid number or word (e.g., "two", "5.5")');
                 return;
             }
             
@@ -70,6 +92,37 @@
             .then(data => {
                 document.getElementById('result').innerHTML = 
                     `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯</p>`;
+            });
+        }
+
+        function sendChat() {
+            let message = document.getElementById('chatInput').value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            const chatBox = document.getElementById('chatBox');
+            const userDiv = document.createElement('div');
+            userDiv.className = 'chat-message user';
+            userDiv.innerHTML = `<p>${message}</p>`;
+            chatBox.appendChild(userDiv);
+            
+            document.getElementById('chatInput').value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Send to backend
+            fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: message})
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botDiv = document.createElement('div');
+                botDiv.className = 'chat-message bot';
+                botDiv.innerHTML = `<p>${data.response}</p>`;
+                chatBox.appendChild(botDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
             });
         }
     </script>
