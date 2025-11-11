@@ -16,17 +16,48 @@
 
         <div class="predictor">
             <h2>🔮 Predict Your Score</h2>
-            <input type="number" id="hoursInput" placeholder="Enter study hours" step="0.5" min="0" max="10">
+            <input type="text" id="hoursInput" placeholder="Enter study hours" step="0.5" min="0" max="10">
             <button onclick="predict()">Predict</button>
             <div id="result"></div>
         </div>
     </div>
 
     <script>
+        // Word to number mapping
+        const wordToNumber = {
+            'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+            'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+            'half': 0.5, 'and half': 0.5
+        };
+
         function predict() {
-            const hours = document.getElementById('hoursInput').value;
-            if (!hours) {
+            let hoursInput = document.getElementById('hoursInput').value.trim().toLowerCase();
+            
+            if (!hoursInput) {
                 alert('Please enter study hours');
+                return;
+            }
+            
+            // Try to convert text to number
+            let hours = parseFloat(hoursInput);
+            
+            // If not a number, try word conversion
+            if (isNaN(hours)) {
+                hours = wordToNumber[hoursInput];
+                
+                // Handle phrases like "two and half"
+                if (!hours) {
+                    for (let word in wordToNumber) {
+                        if (hoursInput.includes(word)) {
+                            hours = wordToNumber[word];
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (isNaN(hours) || hours === undefined) {
+                alert('Please enter a valid number or word (e.g., "two", "5.5", "three and half")');
                 return;
             }
             
