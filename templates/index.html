@@ -3,7 +3,6 @@
 <head>
     <title>Study Hours AI Predictor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -11,13 +10,8 @@
         
         <div class="performance">
             <h2>📊 Model Performance</h2>
-            <p><strong>Test MSE:</strong> {{ mse|round(2) }}</p>
-            <p><strong>Test R²:</strong> {{ r2|round(2) }}</p>
-        </div>
-
-        <!-- Chart Section -->
-        <div class="chart-section">
-            {{ chart|safe }}
+            <p><strong>Test MSE:</strong> {{ mse }}</p>
+            <p><strong>Test R²:</strong> {{ r2 }}</p>
         </div>
 
         <!-- Predictor Section -->
@@ -100,7 +94,6 @@
             
             if (!message) return;
             
-            // Add user message to chat
             const chatBox = document.getElementById('chatBox');
             const userDiv = document.createElement('div');
             userDiv.className = 'chat-message user';
@@ -110,7 +103,6 @@
             document.getElementById('chatInput').value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
             
-            // Send to backend
             fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
