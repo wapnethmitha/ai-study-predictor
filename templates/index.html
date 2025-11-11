@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Hours AI Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Study Hours AI Predictor</h1>
+        
+        <div class="performance">
+            <h2>📊 Model Performance</h2>
+            <p><strong>Test MSE:</strong> {{ mse|round(2) }}</p>
+            <p><strong>Test R²:</strong> {{ r2|round(2) }}</p>
+        </div>
+
+        <div class="predictor">
+            <h2>🔮 Predict Your Score</h2>
+            <input type="number" id="hoursInput" placeholder="Enter study hours" step="0.5" min="0" max="10">
+            <button onclick="predict()">Predict</button>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function predict() {
+            const hours = document.getElementById('hoursInput').value;
+            if (!hours) {
+                alert('Please enter study hours');
+                return;
+            }
+            
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({hours: hours})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
