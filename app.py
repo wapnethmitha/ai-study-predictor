@@ -16,6 +16,9 @@ model = LinearRegression().fit(X_train, y_train)
 mse = mean_squared_error(y_test, model.predict(X_test))
 r2 = r2_score(y_test, model.predict(X_test))
 
+# Track reactions
+reactions = {'thumbs_up': 0, 'thumbs_down': 0}
+
 def extract_number(text):
     """Extract first number from text"""
     numbers = re.findall(r'\d+\.?\d*', text)
@@ -66,6 +69,21 @@ def chat():
         return jsonify({'response': f"Studying **{hours_val}** hours should give you around **{pred:.1f}** score 📊"})
     
     return jsonify({'response': "I didn't understand. Try: 'I study 5 hours', 'I need 90 score', or 'How many hours for 80?'"})
+
+@app.route('/react', methods=['POST'])
+def react():
+    data = request.json
+    reaction_type = data.get('type')  # 'thumbs_up' or 'thumbs_down'
+    
+    if reaction_type in reactions:
+        reactions[reaction_type] += 1
+        return jsonify({'success': True, 'reactions': reactions})
+    
+    return jsonify({'success': False})
+
+@app.route('/reactions', methods=['GET'])
+def get_reactions():
+    return jsonify(reactions)
 
 if __name__ == '__main__':
     app.run(debug=True)

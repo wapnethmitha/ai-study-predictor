@@ -35,6 +35,11 @@
                 <button onclick="sendChat()">Send</button>
             </div>
         </div>
+
+        <!-- Reactions Footer -->
+        <div class="reactions-footer">
+            <p id="reactionsText">👍 <span id="thumbsUp">0</span> | 👎 <span id="thumbsDown">0</span></p>
+        </div>
     </div>
 
     <script>
@@ -43,6 +48,45 @@
             'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
             'half': 0.5, 'and half': 0.5
         };
+
+        // Load reactions on page load
+        function loadReactions() {
+            fetch('/reactions')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('thumbsUp').textContent = data.thumbs_up;
+                    document.getElementById('thumbsDown').textContent = data.thumbs_down;
+                });
+        }
+
+        function addReaction(type) {
+            fetch('/react', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({type: type})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('thumbsUp').textContent = data.reactions.thumbs_up;
+                    document.getElementById('thumbsDown').textContent = data.reactions.thumbs_down;
+                    showReactionFeedback(type);
+                }
+            });
+        }
+
+        function showReactionFeedback(type) {
+            const emoji = type === 'thumbs_up' ? '👍' : '👎';
+            const message = type === 'thumbs_up' ? 'Thanks! Glad you liked it 😊' : 'Thanks for the feedback! We\'ll improve 💪';
+            
+            // Show temporary feedback
+            const feedback = document.createElement('div');
+            feedback.className = 'reaction-feedback';
+            feedback.textContent = `${emoji} ${message}`;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => feedback.remove(), 2000);
+        }
 
         function predict() {
             let hoursInput = document.getElementById('hoursInput').value.trim().toLowerCase();
@@ -80,7 +124,11 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('result').innerHTML = 
-                    `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯</p>`;
+                    `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯
+                    <div class="reaction-buttons">
+                        <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
+                        <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
+                    </div></p>`;
             });
         }
 
@@ -107,11 +155,18 @@
             .then(data => {
                 const botDiv = document.createElement('div');
                 botDiv.className = 'chat-message bot';
-                botDiv.innerHTML = `<p>${data.response}</p>`;
+                botDiv.innerHTML = `<p>${data.response}
+                    <div class="reaction-buttons">
+                        <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍</button>
+                        <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎</button>
+                    </div></p>`;
                 chatBox.appendChild(botDiv);
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         }
+
+        // Load reactions when page loads
+        loadReactions();
     </script>
 </body>
 </html>
