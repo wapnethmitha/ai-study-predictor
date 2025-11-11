@@ -4,9 +4,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import re
+from word2number import w2n  # new import
 
 st.title("🧠 Study Hours AI Predictor")
-st.write("Ask me questions like: *'What’s the score if a student studies 4.5 hours?'*")
+st.write("Ask questions like: 'What’s the score if a student studies 4.5 hours?' or 'two hours'")
 
 # --- Train the model ---
 hours = np.array([1.5, 2.0, 2.5, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.5, 9.0]).reshape(-1, 1)
@@ -24,12 +25,20 @@ st.subheader("💬 Ask a question")
 user_input = st.text_input("Type your question here:")
 
 if user_input:
-    # Try to extract a number (study hours)
+    # Try to extract a number (digits first)
     match = re.search(r'(\d+(\.\d+)?)', user_input)
     
     if match:
         hours_value = float(match.group(1))
+    else:
+        try:
+            # Try to convert number words to digits
+            hours_value = w2n.word_to_num(user_input)
+        except:
+            hours_value = None
+    
+    if hours_value is not None:
         predicted_score = model.predict(np.array([[hours_value]]))[0]
         st.success(f"If a student studies {hours_value} hours, predicted score ≈ {predicted_score:.1f}")
     else:
-        st.warning("Please mention the study hours in your question (e.g., '4.5 hours').")
+        st.warning("Please mention the study hours in your question (digits or words).")
