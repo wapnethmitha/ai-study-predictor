@@ -9,14 +9,14 @@
         <h1>🧠 Study Hours AI Predictor</h1>
         
         <div class="performance">
-            <h2>📊 Model Performance</h2>
+            <h2 style="margin-bottom: 15px; margin-top: 0;">📊 Model Performance</h2>
             <p><strong>Test MSE:</strong> {{ mse }}</p>
             <p><strong>Test R²:</strong> {{ r2 }}</p>
         </div>
 
         <!-- Predictor Section -->
         <div class="predictor">
-            <h2>🔮 Predict Your Score</h2>
+            <h2 style="margin-top: 0;">🔮 Quick Predict</h2>
             <input type="text" id="hoursInput" placeholder="Enter study hours (e.g., 5 or five)">
             <button onclick="predict()">Predict</button>
             <div id="result"></div>
@@ -24,19 +24,14 @@
 
         <!-- Chat Section -->
         <div class="chat-section">
-            <h2>💬 Ask Me Anything</h2>
+            <h2 style="margin: 0 0 15px 0;">💬 Ask Questions</h2>
             <div id="chatBox" class="chat-box">
                 <div class="chat-message bot">
-                    <p>Hi! Ask me questions like:</p>
-                    <ul>
-                        <li>"What if I study 6 hours?"</li>
-                        <li>"How many hours for 80 score?"</li>
-                        <li>"What score for 5 hours?"</li>
-                    </ul>
+                    <p>Hi! Ask me questions like:<br><br>• "What if I study 6 hours?"<br>• "How many hours for 80 score?"<br>• "What score for 5 hours?"</p>
                 </div>
             </div>
             <div class="chat-input-wrapper">
-                <input type="text" id="chatInput" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chatInput" placeholder="Type your question..." onkeypress="if(event.key==='Enter') sendChat()">
                 <button onclick="sendChat()">Send</button>
             </div>
         </div>

@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
+import re
 
 app = Flask(__name__)
 
@@ -14,6 +15,11 @@ model = LinearRegression().fit(X_train, y_train)
 
 mse = mean_squared_error(y_test, model.predict(X_test))
 r2 = r2_score(y_test, model.predict(X_test))
+
+def extract_number(text):
+    """Extract first number from text"""
+    numbers = re.findall(r'\d+\.?\d*', text)
+    return float(numbers[0]) if numbers else None
 
 @app.route('/')
 def index():
@@ -30,50 +36,36 @@ def predict():
 def chat():
     user_message = request.json['message'].lower()
     
+    # Pattern 1: "study X hours" -> predict score
     if 'study' in user_message and 'hours' in user_message:
-        try:
-            words = user_message.split()
-            for i, word in enumerate(words):
-                if word in ['study', 'studying']:
-                    try:
-                        hours_val = float(words[i+1])
-                        if 0 <= hours_val <= 10:
-                            pred = model.predict(np.array([[hours_val]]))[0]
-                            return jsonify({'response': f"If you study {hours_val} hours, your predicted score is **{pred:.1f}** 🎯"})
-                    except:
-                        pass
-        except:
-            pass
+        hours_val = extract_number(user_message)
+        if hours_val and 0 <= hours_val <= 10:
+            pred = model.predict(np.array([[hours_val]]))[0]
+            return jsonify({'response': f"If you study {hours_val} hours, your predicted score is **{pred:.1f}** 🎯"})
     
-    if 'score' in user_message and ('for' in user_message or 'get' in user_message):
-        try:
-            words = user_message.replace('?', '').split()
-            for word in words:
-                try:
-                    num = float(word)
-                    if 0 <= num <= 10:
-                        pred = model.predict(np.array([[num]]))[0]
-                        return jsonify({'response': f"Studying **{num}** hours should give you around **{pred:.1f}** score 📊"})
-                except:
-                    pass
-        except:
-            pass
+    # Pattern 2: "score X" or "take X" or "need X" (predict required hours)
+    if any(word in user_message for word in ['score', 'take', 'need', 'get', 'marks', 'mark']):
+        score_val = extract_number(user_message)
+        if score_val and 20 <= score_val <= 100:
+            hours_needed = (score_val - model.intercept_) / model.coef_[0]
+            hours_needed = max(0, min(10, hours_needed))  # Clamp to 0-10
+            return jsonify({'response': f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️"})
     
-    if 'hours' in user_message and ('for' in user_message or 'get' in user_message):
-        try:
-            words = user_message.replace('?', '').split()
-            for word in words:
-                try:
-                    score = float(word)
-                    if 20 <= score <= 90:
-                        hours_needed = (score - model.intercept_) / model.coef_[0]
-                        return jsonify({'response': f"To get a score of **{score}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️"})
-                except:
-                    pass
-        except:
-            pass
+    # Pattern 3: "hours for X" (score query)
+    if 'hours' in user_message and any(word in user_message for word in ['for', 'get', 'score']):
+        score_val = extract_number(user_message)
+        if score_val and 20 <= score_val <= 100:
+            hours_needed = (score_val - model.intercept_) / model.coef_[0]
+            hours_needed = max(0, min(10, hours_needed))
+            return jsonify({'response': f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️"})
     
-    return jsonify({'response': "I didn't understand. Try: 'What if I study 5 hours?' or 'How many hours for 80 score?'"})
+    # Pattern 4: "X hours" -> predict score (simple)
+    hours_val = extract_number(user_message)
+    if hours_val and 'hours' in user_message and 0 <= hours_val <= 10:
+        pred = model.predict(np.array([[hours_val]]))[0]
+        return jsonify({'response': f"Studying **{hours_val}** hours should give you around **{pred:.1f}** score 📊"})
+    
+    return jsonify({'response': "I didn't understand. Try: 'I study 5 hours', 'I need 90 score', or 'How many hours for 80?'"})
 
 if __name__ == '__main__':
     app.run(debug=True)
