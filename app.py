@@ -1,11 +1,13 @@
+import os
+import json
+import numpy as np
+import re
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from supabase import create_client, Client
-import numpy as np, re, os
 from dotenv import load_dotenv
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-import json
 from pathlib import Path
 from datetime import datetime
 
