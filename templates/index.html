@@ -27,7 +27,7 @@
             <h2 style="margin: 0 0 15px 0;">💬 Ask Questions</h2>
             <div id="chatBox" class="chat-box">
                 <div class="chat-message bot">
-                    <p>Hi! Ask me questions like:<br><br>• "What if I study 6 hours?"<br>• "How many hours for 80 score?"<br>• "What score for 5 hours?"</p>
+                    <p>Hi! Ask me questions like:<br><br>• "What if I study 6 hours?"<br>• "How many hours for 80 score?"<br>• "What score for 5 hours?"<br><br>I'll give you predictions AND study tips! 📚</p>
                 </div>
             </div>
             <div class="chat-input-wrapper">
@@ -79,13 +79,20 @@
             const emoji = type === 'thumbs_up' ? '👍' : '👎';
             const message = type === 'thumbs_up' ? 'Thanks! Glad you liked it 😊' : 'Thanks for the feedback! We\'ll improve 💪';
             
-            // Show temporary feedback
             const feedback = document.createElement('div');
             feedback.className = 'reaction-feedback';
             feedback.textContent = `${emoji} ${message}`;
             document.body.appendChild(feedback);
             
             setTimeout(() => feedback.remove(), 2000);
+        }
+
+        function formatMessage(text) {
+            // Convert **text** to <strong>text</strong>
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Convert newlines to <br>
+            text = text.replace(/\n/g, '<br>');
+            return text;
         }
 
         function predict() {
@@ -123,12 +130,19 @@
             })
             .then(response => response.json())
             .then(data => {
+                let tipsHTML = '<div class="tips-section"><strong>💡 Study Tips:</strong><ul>';
+                data.tips.forEach(tip => {
+                    tipsHTML += `<li>${formatMessage(tip)}</li>`;
+                });
+                tipsHTML += '</ul></div>';
+                
                 document.getElementById('result').innerHTML = 
-                    `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯
+                    `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯</p>
+                    ${tipsHTML}
                     <div class="reaction-buttons">
                         <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
                         <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
-                    </div></p>`;
+                    </div>`;
             });
         }
 
@@ -155,7 +169,7 @@
             .then(data => {
                 const botDiv = document.createElement('div');
                 botDiv.className = 'chat-message bot';
-                botDiv.innerHTML = `<p>${data.response}
+                botDiv.innerHTML = `<p>${formatMessage(data.response)}
                     <div class="reaction-buttons">
                         <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍</button>
                         <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎</button>

@@ -24,6 +24,48 @@ def extract_number(text):
     numbers = re.findall(r'\d+\.?\d*', text)
     return float(numbers[0]) if numbers else None
 
+def get_study_tips(hours_val, score_val):
+    """Generate AI study tips based on hours and predicted score"""
+    tips = []
+    
+    # Tips based on study hours
+    if hours_val <= 2:
+        tips.extend([
+            "💡 **Use the Pomodoro Technique**: Study for 25 mins, break for 5 mins",
+            "📚 **Focus on key topics**: Quality > Quantity. Master the essentials first",
+            "⚡ **Active recall**: Test yourself frequently instead of passive reading"
+        ])
+    elif hours_val <= 4:
+        tips.extend([
+            "🎯 **Mix study methods**: Combine reading, writing, and practice problems",
+            "🧠 **Spaced repetition**: Review material multiple times over days",
+            "✍️ **Make summaries**: Write condensed notes of complex topics"
+        ])
+    elif hours_val <= 6:
+        tips.extend([
+            "🔄 **Take regular breaks**: Every 50 mins, take a 10 min break",
+            "📊 **Practice past papers**: Solve previous exam questions",
+            "💪 **Stay hydrated**: Drink water! Your brain works better hydrated"
+        ])
+    else:
+        tips.extend([
+            "⚖️ **Balance is key**: Don't burn out. Take proper rest",
+            "🎧 **Minimize distractions**: Use focus apps or study in quiet places",
+            "😴 **Sleep well**: 7-8 hours sleep helps consolidate learning"
+        ])
+    
+    # Tips based on predicted score
+    if score_val < 40:
+        tips.append("🚀 **You've got this!** Start with basics and build gradually")
+    elif score_val < 60:
+        tips.append("📈 **Good progress!** Review weak areas and practice more")
+    elif score_val < 80:
+        tips.append("🌟 **Almost there!** Fine-tune your knowledge and do mock tests")
+    else:
+        tips.append("🏆 **Excellent preparation!** Revise and stay confident!")
+    
+    return tips
+
 @app.route('/')
 def index():
     return render_template('index.html', mse=round(mse, 2), r2=round(r2, 2))
@@ -33,7 +75,8 @@ def predict():
     data = request.json
     hours_value = float(data['hours'])
     predicted_score = model.predict(np.array([[hours_value]]))[0]
-    return jsonify({'prediction': round(predicted_score, 1)})
+    tips = get_study_tips(hours_value, predicted_score)
+    return jsonify({'prediction': round(predicted_score, 1), 'tips': tips})
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -44,15 +87,19 @@ def chat():
         hours_val = extract_number(user_message)
         if hours_val and 0 <= hours_val <= 10:
             pred = model.predict(np.array([[hours_val]]))[0]
-            return jsonify({'response': f"If you study {hours_val} hours, your predicted score is **{pred:.1f}** 🎯"})
+            tips = get_study_tips(hours_val, pred)
+            tips_text = "\n\n".join(tips)
+            return jsonify({'response': f"If you study {hours_val} hours, your predicted score is **{pred:.1f}** 🎯\n\n**Study Tips:**\n{tips_text}"})
     
     # Pattern 2: "score X" or "take X" or "need X" (predict required hours)
     if any(word in user_message for word in ['score', 'take', 'need', 'get', 'marks', 'mark']):
         score_val = extract_number(user_message)
         if score_val and 20 <= score_val <= 100:
             hours_needed = (score_val - model.intercept_) / model.coef_[0]
-            hours_needed = max(0, min(10, hours_needed))  # Clamp to 0-10
-            return jsonify({'response': f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️"})
+            hours_needed = max(0, min(10, hours_needed))
+            tips = get_study_tips(hours_needed, score_val)
+            tips_text = "\n\n".join(tips)
+            return jsonify({'response': f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️\n\n**Study Tips:**\n{tips_text}"})
     
     # Pattern 3: "hours for X" (score query)
     if 'hours' in user_message and any(word in user_message for word in ['for', 'get', 'score']):
@@ -60,13 +107,17 @@ def chat():
         if score_val and 20 <= score_val <= 100:
             hours_needed = (score_val - model.intercept_) / model.coef_[0]
             hours_needed = max(0, min(10, hours_needed))
-            return jsonify({'response': f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️"})
+            tips = get_study_tips(hours_needed, score_val)
+            tips_text = "\n\n".join(tips)
+            return jsonify({'response': f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️\n\n**Study Tips:**\n{tips_text}"})
     
     # Pattern 4: "X hours" -> predict score (simple)
     hours_val = extract_number(user_message)
     if hours_val and 'hours' in user_message and 0 <= hours_val <= 10:
         pred = model.predict(np.array([[hours_val]]))[0]
-        return jsonify({'response': f"Studying **{hours_val}** hours should give you around **{pred:.1f}** score 📊"})
+        tips = get_study_tips(hours_val, pred)
+        tips_text = "\n\n".join(tips)
+        return jsonify({'response': f"Studying **{hours_val}** hours should give you around **{pred:.1f}** score 📊\n\n**Study Tips:**\n{tips_text}"})
     
     return jsonify({'response': "I didn't understand. Try: 'I study 5 hours', 'I need 90 score', or 'How many hours for 80?'"})
 
