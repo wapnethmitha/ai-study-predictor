@@ -6,28 +6,45 @@
 </head>
 <body>
     <div class="container">
-        <h1>🧠 Study Hours AI Predictor</h1>
+        <!-- Header with Theme Toggle and Logout -->
+        <div class="header">
+            <div class="header-left">
+                <h1>📚 Study Predictor</h1>
+            </div>
+            <div class="header-right">
+                <div class="greeting">
+                    <span id="greetingText">Good Morning</span>, <strong>{{ username }}</strong>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">🌙</span>
+                    <div class="toggle-switch" id="toggleSwitch">
+                        <div class="toggle-circle"></div>
+                    </div>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
         
         <div class="performance">
-            <h2 style="margin-bottom: 15px; margin-top: 0;">📊 Model Performance</h2>
-            <p><strong>Test MSE:</strong> {{ mse }}</p>
-            <p><strong>Test R²:</strong> {{ r2 }}</p>
+            <h2>📊 Model Performance</h2>
+            <p><strong>Test MSE:</strong> <span>{{ mse }}</span></p>
+            <p><strong>Test R²:</strong> <span>{{ r2 }}</span></p>
         </div>
 
         <!-- Predictor Section -->
         <div class="predictor">
-            <h2 style="margin-top: 0;">🔮 Quick Predict</h2>
+            <h2>🔮 Quick Predict</h2>
             <input type="text" id="hoursInput" placeholder="Enter study hours (e.g., 5 or five)">
-            <button onclick="predict()">Predict</button>
+            <button onclick="predict()">Predict Score</button>
             <div id="result"></div>
         </div>
 
         <!-- Chat Section -->
         <div class="chat-section">
-            <h2 style="margin: 0 0 15px 0;">💬 Ask Questions</h2>
+            <h2>💬 AI Assistant</h2>
             <div id="chatBox" class="chat-box">
                 <div class="chat-message bot">
-                    <p>Hi! Ask me questions like:<br><br>• "What if I study 6 hours?"<br>• "How many hours for 80 score?"<br>• "What score for 5 hours?"<br><br>I'll give you predictions AND study tips! 📚</p>
+                    <p>👋 Hi <strong>{{ username }}</strong>! Ask me:<br><br>• "I study 6 hours"<br>• "How many hours for 80?"<br>• "What score for 5 hours?"</p>
                 </div>
             </div>
             <div class="chat-input-wrapper">
@@ -36,27 +53,86 @@
             </div>
         </div>
 
-        <!-- Reactions Footer -->
-        <div class="reactions-footer">
-            <p id="reactionsText">👍 <span id="thumbsUp">0</span> | 👎 <span id="thumbsDown">0</span></p>
-        </div>
     </div>
 
     <script>
+        // Initialize theme from localStorage
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.getElementById('toggleSwitch').classList.add('active');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-theme');
+            const toggle = document.getElementById('toggleSwitch');
+            const icon = document.getElementById('themeIcon');
+            
+            if (isDark) {
+                localStorage.setItem('theme', 'dark');
+                toggle.classList.add('active');
+                icon.textContent = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                toggle.classList.remove('active');
+                icon.textContent = '🌙';
+            }
+        }
+
+        // Get current greeting
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (hour < 12) return "Good Morning";
+            if (hour < 18) return "Good Afternoon";
+            return "Good Evening";
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            document.getElementById('greetingText').textContent = getGreeting();
+            loadChatHistory();
+        });
+
+        // Load chat history
+        function loadChatHistory() {
+            fetch('/history')
+                .then(res => res.json())
+                .then(chats => {
+                    if (chats && chats.length > 0) {
+                        chats.reverse().forEach(c => {
+                            addChat('user', c.message);
+                            addChat('bot', c.response);
+                        });
+                    }
+                });
+        }
+
+        function addChat(sender, text) {
+            const div = document.createElement('div');
+            div.className = 'chat-message ' + sender;
+            div.innerHTML = `<p>${formatMessage(text)}</p>`;
+            document.getElementById('chatBox').appendChild(div);
+        }
+
         const wordToNumber = {
             'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
             'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
             'half': 0.5, 'and half': 0.5
         };
 
-        // Load reactions on page load
         function loadReactions() {
             fetch('/reactions')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('thumbsUp').textContent = data.thumbs_up;
                     document.getElementById('thumbsDown').textContent = data.thumbs_down;
-                });
+                })
+                .catch(() => {});
         }
 
         function addReaction(type) {
@@ -68,16 +144,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('thumbsUp').textContent = data.reactions.thumbs_up;
-                    document.getElementById('thumbsDown').textContent = data.reactions.thumbs_down;
                     showReactionFeedback(type);
                 }
-            });
+            })
+            .catch(() => {});
         }
 
         function showReactionFeedback(type) {
             const emoji = type === 'thumbs_up' ? '👍' : '👎';
-            const message = type === 'thumbs_up' ? 'Thanks! Glad you liked it 😊' : 'Thanks for the feedback! We\'ll improve 💪';
+            const message = type === 'thumbs_up' ? 'Thanks!' : 'We will improve!';
             
             const feedback = document.createElement('div');
             feedback.className = 'reaction-feedback';
@@ -88,9 +163,7 @@
         }
 
         function formatMessage(text) {
-            // Convert **text** to <strong>text</strong>
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // Convert newlines to <br>
             text = text.replace(/\n/g, '<br>');
             return text;
         }
@@ -107,7 +180,6 @@
             
             if (isNaN(hours)) {
                 hours = wordToNumber[hoursInput];
-                
                 if (!hours) {
                     for (let word in wordToNumber) {
                         if (hoursInput.includes(word)) {
@@ -119,7 +191,7 @@
             }
             
             if (isNaN(hours) || hours === undefined) {
-                alert('Please enter a valid number or word (e.g., "two", "5.5")');
+                alert('Please enter a valid number');
                 return;
             }
             
@@ -130,6 +202,10 @@
             })
             .then(response => response.json())
             .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
                 let tipsHTML = '<div class="tips-section"><strong>💡 Study Tips:</strong><ul>';
                 data.tips.forEach(tip => {
                     tipsHTML += `<li>${formatMessage(tip)}</li>`;
@@ -137,7 +213,7 @@
                 tipsHTML += '</ul></div>';
                 
                 document.getElementById('result').innerHTML = 
-                    `<p class="success">If you study <strong>${hours}</strong> hours, predicted score ≈ <strong>${data.prediction}</strong> 🎯</p>
+                    `<p class="success">If you study <strong>${hours}</strong> hours → Score: <strong>${data.prediction}</strong></p>
                     ${tipsHTML}
                     <div class="reaction-buttons">
                         <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
@@ -179,7 +255,6 @@
             });
         }
 
-        // Load reactions when page loads
         loadReactions();
     </script>
 </body>
