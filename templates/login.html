@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login - Study Predictor</title>
+    <title>EduPredict - AI Study Assistant</title>
     <style>
         * {
             margin: 0;
@@ -10,152 +10,186 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #e8e0ff 0%, #04002c 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 900px;
         }
 
         .auth-container {
-            display: flex;
-            width: 100%;
-            max-width: 900px;
-            height: auto;
-            min-height: 500px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            border-radius: 16px;
-            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
             background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            min-height: 550px;
         }
 
         .auth-left {
-            flex: 1;
-            background: linear-gradient(135deg, #f5f5f7 0%, #efefef 100%);
-            padding: 60px 40px;
+            background: linear-gradient(135deg, #210047 0%, #764ba2ef 100%);
+            padding: 60px 45px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            border-right: 1px solid #e5e5e7;
+            color: white;
+        }
+
+        .logo {
+            font-size: 3.5em;
+            margin-bottom: 20px;
         }
 
         .auth-left h1 {
-            font-size: 2.2em;
-            color: #1d1d1f;
+            font-size: 2.5em;
+            font-weight: 800;
             margin-bottom: 15px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
+            letter-spacing: -1px;
         }
 
         .auth-left p {
-            font-size: 1em;
-            color: #6f6f77;
+            font-size: 1.05em;
             line-height: 1.6;
-            margin-bottom: 10px;
+            opacity: 0.95;
+            margin-bottom: 12px;
         }
 
-        .auth-left .emoji {
-            font-size: 3.5em;
-            margin: 25px 0 20px 0;
+        .features {
+            margin-top: 40px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            font-size: 0.95em;
+            opacity: 0.9;
         }
 
         .auth-right {
-            flex: 1;
-            background: #ffffff;
-            padding: 60px 40px;
+            padding: 60px 45px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            background: white;
         }
 
-        .auth-right h2 {
+        .form-header {
+            margin-bottom: 35px;
+        }
+
+        .form-header h2 {
             font-size: 1.8em;
-            color: #1d1d1f;
+            color: #1a1a1a;
+            font-weight: 700;
             margin-bottom: 8px;
-            font-weight: 600;
+        }
+
+        .form-header p {
+            color: #666;
+            font-size: 0.95em;
         }
 
         .auth-tabs {
             display: flex;
             gap: 0;
-            margin: 25px 0 30px 0;
-            border-bottom: 1px solid #e5e5e7;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e5e5e5;
         }
 
         .auth-tabs button {
             flex: 1;
-            padding: 15px 0;
+            padding: 14px 0;
             background: none;
             border: none;
-            font-size: 0.95em;
-            color: #6f6f77;
+            font-size: 1em;
+            color: #999;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.3s ease;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
         }
 
         .auth-tabs button.active {
-            color: #0071e3;
-            border-bottom-color: #0071e3;
+            color: #667eea;
+            border-bottom-color: #667eea;
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #1d1d1f;
-            font-weight: 500;
-            font-size: 0.9em;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
         }
 
         .form-group input {
             width: 100%;
             padding: 12px 14px;
-            border: 1px solid #e5e5e7;
-            border-radius: 8px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
             font-size: 1em;
-            background: #f5f5f7;
-            color: #1d1d1f;
+            background: #f9f9f9;
+            color: #1a1a1a;
             transition: all 0.3s ease;
         }
 
         .form-group input:focus {
             outline: none;
+            border-color: #667eea;
             background: white;
-            border-color: #0071e3;
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
 
         .form-group input::placeholder {
-            color: #a1a1a6;
+            color: #bbb;
         }
 
         .submit-btn {
             width: 100%;
-            padding: 12px;
-            background: #0071e3;
+            padding: 13px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
+            border-radius: 10px;
+            font-size: 1.05em;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .submit-btn:hover {
-            background: #0077ed;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.35);
         }
 
         .submit-btn:active {
@@ -163,112 +197,155 @@
         }
 
         .error-message {
-            background: #fef2f2;
+            background: #fee;
             color: #dc2626;
             padding: 12px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 20px;
-            border-left: 3px solid #dc2626;
+            border-left: 4px solid #dc2626;
             font-size: 0.9em;
+            font-weight: 500;
         }
 
         .form-footer {
             text-align: center;
             margin-top: 20px;
-            color: #6f6f77;
-            font-size: 0.9em;
+            color: #666;
+            font-size: 0.95em;
         }
 
         .form-footer a {
-            color: #0071e3;
+            color: #667eea;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: color 0.3s;
         }
 
         .form-footer a:hover {
-            color: #0077ed;
+            color: #764ba2;
         }
 
         #registerForm {
             display: none;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .auth-container {
-                flex-direction: column;
+                grid-template-columns: 1fr;
                 min-height: auto;
             }
 
             .auth-left {
-                padding: 40px 30px;
-                border-right: none;
-                border-bottom: 1px solid #e5e5e7;
-            }
-
-            .auth-left h1 {
-                font-size: 1.8em;
+                padding: 45px 35px;
             }
 
             .auth-right {
-                padding: 40px 30px;
+                padding: 45px 35px;
+            }
+
+            .auth-left h1 {
+                font-size: 2em;
+            }
+
+            .features {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .auth-left h1 {
+                font-size: 1.6em;
+            }
+
+            .auth-right {
+                padding: 35px 20px;
+            }
+
+            .form-header h2 {
+                font-size: 1.4em;
             }
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-left">
-            <h1>Study Predictor</h1>
-            <p>Predict your exam scores based on study hours</p>
-            <div class="emoji">📚</div>
-            <p>Get personalized study tips and ace your exams!</p>
-        </div>
-
-        <div class="auth-right">
-            <div class="auth-tabs">
-                <button class="active" id="loginTab" onclick="switchTab('login')">Login</button>
-                <button id="registerTab" onclick="switchTab('register')">Register</button>
+    <div class="auth-wrapper">
+        <div class="auth-container">
+            <div class="auth-left">
+                <div class="logo">🎓</div>
+                <h1>EduPredict</h1>
+                <p>Your AI Study Assistant</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-text">Predict exam scores instantly</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💡</div>
+                        <div class="feature-text">Get personalized study tips</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🎯</div>
+                        <div class="feature-text">Optimize your study plan</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📈</div>
+                        <div class="feature-text">Track your progress</div>
+                    </div>
+                </div>
             </div>
 
-            {% if error %}
-            <div class="error-message">{{ error }}</div>
-            {% endif %}
+            <div class="auth-right">
+                <div class="auth-tabs">
+                    <button class="active" id="loginTab" onclick="switchTab('login')">Login</button>
+                    <button id="registerTab" onclick="switchTab('register')">Register</button>
+                </div>
 
-            <!-- Login Form -->
-            <form id="loginForm" method="POST" action="{{ url_for('login') }}">
-                <h2>Welcome Back</h2>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" placeholder="your@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" placeholder="Enter your password" required>
-                </div>
-                <button type="submit" class="submit-btn">Login</button>
-                <div class="form-footer">
-                    No account? <a onclick="switchTab('register')">Register here</a>
-                </div>
-            </form>
+                {% if error %}
+                <div class="error-message">{{ error }}</div>
+                {% endif %}
 
-            <!-- Register Form -->
-            <form id="registerForm" method="POST" action="{{ url_for('register') }}">
-                <h2>Create Account</h2>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" placeholder="your@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" placeholder="Minimum 6 characters" required minlength="6">
-                </div>
-                <button type="submit" class="submit-btn">Create Account</button>
-                <div class="form-footer">
-                    Have an account? <a onclick="switchTab('login')">Login here</a>
-                </div>
-            </form>
+                <!-- Login Form -->
+                <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+                    <div class="form-header">
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to your account to continue</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Sign In</button>
+                    <div class="form-footer">
+                        Don't have an account? <a onclick="switchTab('register')">Create one</a>
+                    </div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" method="POST" action="{{ url_for('register') }}">
+                    <div class="form-header">
+                        <h2>Get Started</h2>
+                        <p>Create your account and start learning</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Minimum 6 characters" required minlength="6">
+                    </div>
+                    <button type="submit" class="submit-btn">Create Account</button>
+                    <div class="form-footer">
+                        Already have an account? <a onclick="switchTab('login')">Sign in</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

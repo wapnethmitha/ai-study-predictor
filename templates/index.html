@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Study Hours AI Predictor</title>
+    <title>EduPredict - AI Study Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <!-- Header with Theme Toggle and Logout -->
+        <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <h1>📚 Study Predictor</h1>
+                <h1>🎓 EduPredict</h1>
             </div>
             <div class="header-right">
                 <div class="greeting">
@@ -44,15 +44,14 @@
             <h2>💬 AI Assistant</h2>
             <div id="chatBox" class="chat-box">
                 <div class="chat-message bot">
-                    <p>👋 Hi <strong>{{ username }}</strong>! Ask me:<br><br>• "I study 6 hours"<br>• "How many hours for 80?"<br>• "What score for 5 hours?"</p>
+                    <p>👋 Hi <strong>{{ username }}</strong>! I'm your AI study assistant. Ask me:<br><br>• "I study 6 hours"<br>• "How many hours for 80?"<br>• "What score for 5 hours?"</p>
                 </div>
             </div>
             <div class="chat-input-wrapper">
-                <input type="text" id="chatInput" placeholder="Type your question..." onkeypress="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chatInput" placeholder="Ask about your study hours..." onkeypress="if(event.key==='Enter') sendChat()">
                 <button onclick="sendChat()">Send</button>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -124,16 +123,6 @@
             'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
             'half': 0.5, 'and half': 0.5
         };
-
-        function loadReactions() {
-            fetch('/reactions')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('thumbsUp').textContent = data.thumbs_up;
-                    document.getElementById('thumbsDown').textContent = data.thumbs_down;
-                })
-                .catch(() => {});
-        }
 
         function addReaction(type) {
             fetch('/react', {
@@ -254,8 +243,6 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         }
-
-        loadReactions();
     </script>
 </body>
 </html>

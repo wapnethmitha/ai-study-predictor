@@ -7,45 +7,45 @@
 :root {
     /* Light Theme */
     --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f7;
-    --bg-tertiary: #efefef;
-    --text-primary: #1d1d1f;
-    --text-secondary: #6f6f77;
-    --border-color: #e5e5e7;
+    --bg-secondary: #f7f7f8;
+    --bg-tertiary: #ececf1;
+    --text-primary: #0d0d0d;
+    --text-secondary: #565869;
+    --border-color: #d1d5db;
     --header-bg: #ffffff;
-    --card-bg: #f5f5f7;
+    --card-bg: #f7f7f8;
     --input-bg: #ffffff;
-    --input-border: #e5e5e7;
-    --button-bg: #0071e3;
-    --button-hover: #0077ed;
-    --accent: #0071e3;
-    --success: #34c759;
-    --shadow: rgba(0, 0, 0, 0.05);
+    --input-border: #d1d5db;
+    --button-bg: #667eea;
+    --button-hover: #764ba2;
+    --accent: #667eea;
+    --success: #10b981;
+    --shadow: rgba(0, 0, 0, 0.04);
     --shadow-md: rgba(0, 0, 0, 0.1);
 }
 
 body.dark-theme {
     /* Dark Theme */
-    --bg-primary: #1d1d1f;
-    --bg-secondary: #2a2a2e;
-    --bg-tertiary: #3a3a3f;
-    --text-primary: #f5f5f7;
-    --text-secondary: #a1a1a6;
-    --border-color: #424245;
-    --header-bg: #1d1d1f;
-    --card-bg: #2a2a2e;
-    --input-bg: #2a2a2e;
-    --input-border: #424245;
-    --button-bg: #0a84ff;
-    --button-hover: #147eff;
-    --accent: #0a84ff;
-    --success: #30b0c0;
+    --bg-primary: #0d0d0d;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2d2d2d;
+    --text-primary: #ececf1;
+    --text-secondary: #b4b4b8;
+    --border-color: #404040;
+    --header-bg: #0d0d0d;
+    --card-bg: #1a1a1a;
+    --input-bg: #1a1a1a;
+    --input-border: #404040;
+    --button-bg: #667eea;
+    --button-hover: #764ba2;
+    --accent: #667eea;
+    --success: #10b981;
     --shadow: rgba(0, 0, 0, 0.3);
     --shadow-md: rgba(0, 0, 0, 0.5);
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -60,58 +60,41 @@ body {
     background-color: var(--bg-primary);
 }
 
-h1 {
-    text-align: center;
-    color: #ececf1;
-    font-size: 2.2em;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    padding: 20px;
-    flex-shrink: 0;
-}
-
-h2 {
-    color: #ececf1;
-    font-size: 1.2em;
-    font-weight: 500;
-    margin-bottom: 15px;
-}
-
 /* Header */
 .header {
     background-color: var(--header-bg);
     border-bottom: 1px solid var(--border-color);
-    padding: 20px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px var(--shadow);
+    box-shadow: 0 1px 3px var(--shadow);
     flex-shrink: 0;
     transition: all 0.3s ease;
 }
 
 .header-left h1 {
     color: var(--text-primary);
-    font-size: 1.5em;
-    font-weight: 600;
+    font-size: 1.6em;
+    font-weight: 700;
     margin: 0;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.5px;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 20px;
 }
 
 .greeting {
-    color: var(--text-primary);
-    font-size: 0.95em;
+    color: var(--text-secondary);
+    font-size: 0.9em;
     font-weight: 500;
 }
 
 .greeting strong {
-    color: var(--accent);
+    color: var(--text-primary);
     font-weight: 700;
 }
 
@@ -122,7 +105,7 @@ h2 {
     gap: 8px;
     background: var(--bg-secondary);
     border-radius: 20px;
-    padding: 4px 8px;
+    padding: 6px 10px;
     cursor: pointer;
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
@@ -136,14 +119,13 @@ h2 {
     font-size: 1.1em;
     display: flex;
     align-items: center;
-    justify-content: center;
 }
 
 .toggle-switch {
-    width: 44px;
-    height: 24px;
+    width: 40px;
+    height: 22px;
     background: var(--text-secondary);
-    border-radius: 12px;
+    border-radius: 11px;
     position: relative;
     transition: background 0.3s ease;
     margin: 0 4px;
@@ -154,10 +136,10 @@ h2 {
 }
 
 .toggle-circle {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     background: white;
-    border-radius: 10px;
+    border-radius: 9px;
     position: absolute;
     top: 2px;
     left: 2px;
@@ -165,7 +147,7 @@ h2 {
 }
 
 .toggle-switch.active .toggle-circle {
-    left: 22px;
+    left: 20px;
 }
 
 .logout-btn {
@@ -174,7 +156,7 @@ h2 {
     padding: 8px 16px;
     border-radius: 8px;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.3s ease;
     border: 1px solid var(--border-color);
     cursor: pointer;
@@ -190,61 +172,60 @@ h2 {
 /* Performance Card */
 .performance {
     background: var(--card-bg);
-    padding: 20px;
+    padding: 18px 20px;
     border-radius: 12px;
-    margin: 0 20px 15px 20px;
+    margin: 15px 20px 0 20px;
     border: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
 .performance h2 {
-    font-size: 0.9em;
-    font-weight: 600;
+    font-size: 0.85em;
+    font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    opacity: 0.7;
 }
 
 .performance p {
-    margin: 8px 0;
+    margin: 6px 0;
     color: var(--text-secondary);
-    font-size: 0.9em;
+    font-size: 0.85em;
     display: flex;
     justify-content: space-between;
 }
 
 .performance p strong {
-    color: var(--accent);
+    color: var(--text-primary);
     font-weight: 600;
 }
 
 /* Predictor Section */
 .predictor {
     background: var(--card-bg);
-    padding: 20px;
-    margin: 0 20px 15px 20px;
+    padding: 18px 20px;
+    margin: 15px 20px 0 20px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
     flex-shrink: 0;
 }
 
 .predictor h2 {
-    font-size: 0.9em;
-    font-weight: 600;
+    font-size: 0.95em;
+    font-weight: 700;
     color: var(--text-primary);
-    margin: 0 0 15px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin: 0 0 12px 0;
 }
 
 .predictor input {
     width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 12px;
+    padding: 11px 13px;
+    margin-bottom: 10px;
     border: 1px solid var(--input-border);
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 0.95em;
     background: var(--input-bg);
     color: var(--text-primary);
     transition: all 0.3s ease;
@@ -257,18 +238,18 @@ h2 {
 .predictor input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .predictor button {
     width: 100%;
-    padding: 12px;
+    padding: 11px;
     background: var(--button-bg);
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 0.95em;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -276,23 +257,27 @@ h2 {
 .predictor button:hover {
     background: var(--button-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .predictor button:active {
     transform: translateY(0);
 }
 
-.success {
+#result {
     margin-top: 12px;
-    padding: 12px 14px;
-    background: rgba(52, 199, 89, 0.1);
-    color: var(--success);
+}
+
+.success {
+    padding: 12px;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--accent);
     border-radius: 8px;
     text-align: center;
-    font-weight: 500;
-    border: 1px solid var(--success);
+    font-weight: 600;
+    border: 1px solid var(--accent);
     font-size: 0.9em;
+    margin-bottom: 10px;
 }
 
 /* Chat Section */
@@ -302,18 +287,17 @@ h2 {
     flex-direction: column;
     background: var(--bg-primary);
     padding: 15px 20px 20px 20px;
-    margin: 0 20px;
+    margin-top: 15px;
     min-height: 500px;
 }
 
 .chat-section h2 {
     flex-shrink: 0;
     margin: 0 0 15px 0;
-    font-size: 0.9em;
-    font-weight: 600;
+    font-size: 0.95em;
+    font-weight: 700;
     color: var(--text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-transform: none;
 }
 
 .chat-box {
@@ -321,11 +305,12 @@ h2 {
     background: transparent;
     border-radius: 10px;
     overflow-y: auto;
-    padding: 15px 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 12px;
     min-height: 400px;
+    scroll-behavior: smooth;
 }
 
 .chat-box::-webkit-scrollbar {
@@ -368,7 +353,7 @@ h2 {
 .chat-message.user p {
     background: var(--accent);
     color: white;
-    padding: 12px 14px;
+    padding: 11px 14px;
     border-radius: 12px;
     max-width: 70%;
     word-wrap: break-word;
@@ -383,7 +368,7 @@ h2 {
 .chat-message.bot p {
     background: var(--card-bg);
     color: var(--text-primary);
-    padding: 12px 14px;
+    padding: 11px 14px;
     border-radius: 12px;
     max-width: 70%;
     word-wrap: break-word;
@@ -394,21 +379,21 @@ h2 {
 
 .chat-input-wrapper {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     margin-top: 15px;
     flex-shrink: 0;
 }
 
 .chat-input-wrapper input {
     flex: 1;
-    padding: 12px 14px;
+    padding: 11px 13px;
     border: 1px solid var(--input-border);
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 0.95em;
     background: var(--input-bg);
     color: var(--text-primary);
     transition: all 0.3s ease;
-    min-height: 44px;
+    min-height: 42px;
 }
 
 .chat-input-wrapper input::placeholder {
@@ -418,26 +403,27 @@ h2 {
 .chat-input-wrapper input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .chat-input-wrapper button {
-    padding: 12px 20px;
+    padding: 11px 18px;
     background: var(--button-bg);
     color: white;
     border: none;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 14px;
+    font-size: 0.95em;
     flex-shrink: 0;
-    min-height: 44px;
+    min-height: 42px;
 }
 
 .chat-input-wrapper button:hover {
     background: var(--button-hover);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Reaction Buttons */
@@ -454,7 +440,7 @@ h2 {
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 0.85em;
     transition: all 0.2s ease;
     color: var(--text-secondary);
 }
@@ -466,26 +452,6 @@ h2 {
     transform: scale(1.05);
 }
 
-/* Reactions Footer */
-.reactions-footer {
-    background: var(--card-bg);
-    padding: 15px 20px;
-    margin: 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 1em;
-    flex-shrink: 0;
-}
-
-#reactionsText {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
 /* Feedback */
 .reaction-feedback {
     position: fixed;
@@ -495,7 +461,7 @@ h2 {
     color: white;
     padding: 12px 16px;
     border-radius: 8px;
-    font-weight: 500;
+    font-weight: 600;
     animation: slideUp 0.3s ease;
     z-index: 1000;
     font-size: 0.9em;
@@ -514,18 +480,19 @@ h2 {
 
 /* Tips Section */
 .tips-section {
-    background: rgba(0, 113, 227, 0.1);
-    border: 1px solid var(--accent);
+    background: rgba(102, 126, 234, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.3);
     border-radius: 8px;
-    padding: 12px 14px;
-    margin: 12px 0;
-    color: var(--accent);
+    padding: 10px 12px;
+    margin: 10px 0;
+    color: var(--text-secondary);
 }
 
 .tips-section strong {
     display: block;
-    margin-bottom: 10px;
-    font-size: 0.95em;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    color: var(--accent);
 }
 
 .tips-section ul {
@@ -534,11 +501,11 @@ h2 {
 }
 
 .tips-section ul li {
-    margin: 6px 0;
-    padding-left: 18px;
+    margin: 5px 0;
+    padding-left: 16px;
     position: relative;
     color: var(--text-secondary);
-    font-size: 0.9em;
+    font-size: 0.85em;
     line-height: 1.4;
 }
 
@@ -559,7 +526,7 @@ h2 {
     }
 
     .header-left h1 {
-        font-size: 1.2em;
+        font-size: 1.3em;
     }
 
     .header-right {
@@ -572,18 +539,21 @@ h2 {
         width: 100%;
     }
 
-    h1 {
-        font-size: 1.6em;
-    }
-    
     .chat-message.user p,
     .chat-message.bot p {
         max-width: 85%;
     }
 
-    .chat-input-wrapper input,
-    .chat-input-wrapper button {
-        min-height: 40px;
-        font-size: 14px;
+    .chat-input-wrapper {
+        gap: 8px;
+    }
+
+    .chat-section {
+        padding: 12px 15px 15px 15px;
+    }
+
+    .performance,
+    .predictor {
+        margin: 12px 15px 0 15px;
     }
 }
