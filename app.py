@@ -128,7 +128,7 @@ def register():
             return render_template('login.html', error="Email and password are required.")
         
         if len(password) < 6:
-            return render_template('login.html', error="Password must be at least 6 characters.")
+            return render_template('login.html', error="Password must be at least 6 characters")
         
         if '@' not in email:
             return render_template('login.html', error="Invalid email format.")
