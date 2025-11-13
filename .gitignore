@@ -1,15 +1,36 @@
+# Virtual Environment
 .venv/
 venv/
 env/
 ENV/
+*.venv
+
+# Python
 __pycache__/
-*.pyc
-.env
-.DS_Store
-*.log
-users.json
-instance/
-.pytest_cache/
+*.py[cod]
+*$py.class
+*.so
+.Python
 *.egg-info/
 dist/
 build/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application
+users.json
+*.log
+.pytest_cache/
+instance/
