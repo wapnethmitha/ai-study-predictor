@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from pathlib import Path
 from datetime import datetime
+from face_analyzer import capture_face_emotion
 
 load_dotenv()
 
@@ -253,3 +254,32 @@ def get_reactions():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+@app.route('/face', methods=['GET'])
+def face_study_recommendation():
+    """
+    Opens webcam, detects emotions, and recommends study hours.
+    """
+    emotions = capture_face_emotion()
+    if not emotions:
+        return jsonify({'recommendation': "No face detected. Please try again."})
+
+    # Simple logic: if 'sad', 'angry', or 'disgust' -> suggest shorter session
+    focus_score = sum([1 if e in ['happy', 'neutral'] else 0 for e in emotions]) / len(emotions)
+    if focus_score > 0.7:
+        recommended_hours = 4 + focus_score*2  # 4-6 hours
+    elif focus_score > 0.4:
+        recommended_hours = 2 + focus_score*2  # 2-4 hours
+    else:
+        recommended_hours = 1 + focus_score*1  # 1-2 hours
+
+    # Predict score using existing linear model
+    predicted_score = model.predict(np.array([[recommended_hours]]))[0]
+    tips = get_study_tips(recommended_hours, predicted_score)
+
+    return jsonify({
+        'recommended_hours': round(recommended_hours, 1),
+        'predicted_score': round(predicted_score, 1),
+        'tips': tips
+    })
