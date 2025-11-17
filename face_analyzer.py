@@ -1,6 +1,7 @@
 from deepface import DeepFace
 import cv2
 
+
 def analyze_face(frame):
     """
     Analyze a single frame for emotion and attention.

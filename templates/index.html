@@ -11,7 +11,6 @@
             <div class="header-left">
                 <h1>🎓 EduPredict</h1>
             </div>
-            <button onclick="analyzeFace()">🎥 Analyze Face & Recommend Study Hours</button>
 
             <div class="header-right">
                 <div class="greeting">
@@ -39,6 +38,12 @@
             <input type="text" id="hoursInput" placeholder="Enter study hours (e.g., 5 or five)">
             <button onclick="predict()">Predict Score</button>
             <div id="result"></div>
+        </div>
+        <!-- Face Analyzer Section -->
+        <div class="predictor2">
+            <h2 style="margin-top: 0;">📸 Face Analysis</h2>
+            <button id="faceButton">Analyze My Focus/Emotion</button>
+            <div id="faceResult"></div>
         </div>
 
         <!-- Chat Section -->
@@ -245,6 +250,58 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         }
+
+        // Face Analysis
+document.getElementById('faceButton').addEventListener('click', async () => {
+    const faceResultDiv = document.getElementById('faceResult');
+    faceResultDiv.innerHTML = 'Opening webcam... 🎥';
+
+    try {
+        // Ask for webcam permission
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.autoplay = true;
+        video.width = 320;
+        video.height = 240;
+        faceResultDiv.innerHTML = '';
+        faceResultDiv.appendChild(video);
+
+        // Wait 3 seconds to capture
+        setTimeout(async () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert image to base64
+            const imgData = canvas.toDataURL('image/jpeg');
+
+            // Stop webcam
+            stream.getTracks().forEach(track => track.stop());
+
+            faceResultDiv.innerHTML = 'Analyzing... ⏳';
+
+            // Send image to backend
+            const response = await fetch('/analyze_face', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imgData })
+            });
+            const data = await response.json();
+
+            // Show results
+            faceResultDiv.innerHTML = `<p>Predicted Focus: <strong>${data.focus}</strong></p>
+                                       <p>Recommended Study Hours: <strong>${data.recommended_hours}</strong></p>`;
+        }, 3000);
+
+    } catch (err) {
+        console.error(err);
+        faceResultDiv.innerHTML = 'Error accessing webcam ❌';
+    }
+});
+
     </script>
 </body>
 </html>
