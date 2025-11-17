@@ -12,6 +12,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from pathlib import Path
 from datetime import datetime
 from face_analyzer import capture_face_emotion
+from pathlib import Path
 
 load_dotenv()
 
@@ -187,7 +188,7 @@ def predict():
         return jsonify({'prediction': round(predicted_score, 1), 'tips': tips})
     except Exception as e:
         return jsonify({'error': str(e)})
-
+    
 @app.route('/chat', methods=['POST'])
 def chat():
     if 'user' not in session:
@@ -197,15 +198,16 @@ def chat():
     hours_val = extract_number(message)
     response_text = "I didn't understand. Try: 'I study 5 hours', 'I need 80 score', or 'How many hours for 75?'"
 
-    # Pattern 1: "study X hours"
+    # -----------------------------
+    # AI PREDICTION LOGIC
+    # -----------------------------
     if 'study' in message and 'hours' in message and hours_val is not None:
         if 0 <= hours_val <= 10:
             pred = model.predict(np.array([[hours_val]]))[0]
             tips = get_study_tips(hours_val, pred)
             tips_str = " | ".join(tips)
             response_text = f"If you study {hours_val} hours, your predicted score is **{pred:.1f}** 🎯\n\n💡 Tips: {tips_str}"
-    
-    # Pattern 2: "need/score X"
+
     elif any(word in message for word in ['score', 'need', 'get', 'mark', 'for']) and hours_val is not None:
         if 20 <= hours_val <= 100:
             score_val = hours_val
@@ -215,7 +217,9 @@ def chat():
             tips_str = " | ".join(tips)
             response_text = f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️\n\n💡 Tips: {tips_str}"
 
-    # Save chat to Supabase
+    # -----------------------------
+    # SAVE TO SUPABASE
+    # -----------------------------
     if SUPABASE_ENABLED:
         try:
             supabase.table("chats").insert({
@@ -225,24 +229,43 @@ def chat():
                 "created_at": datetime.now().isoformat()
             }).execute()
         except Exception as e:
-            print(f"⚠️ Failed to save chat: {e}")
+            print("❌ Supabase save failed:", e)
 
     return jsonify({'response': response_text})
 
-@app.route('/history', methods=['GET'])
+
+@app.route('/history')
 def history():
     if 'user' not in session:
         return jsonify([])
-    
-    if not SUPABASE_ENABLED:
-        return jsonify([])
-    
-    try:
-        result = supabase.table("chats").select("*").eq("user_email", session['user']).order("created_at", desc=True).limit(50).execute()
-        return jsonify(result.data if result.data else [])
-    except Exception as e:
-        print(f"⚠️ Failed to load chat history: {e}")
-        return jsonify([])
+
+    user_email = session['user']
+
+    if SUPABASE_ENABLED:
+        try:
+            data = supabase.table("chats") \
+                .select("*") \
+                .eq("user_email", user_email) \
+                .order("created_at", ascending=True) \
+                .execute()
+            return jsonify(data.data)
+        except Exception as e:
+            print("❌ Failed to load history:", e)
+            return jsonify([])
+
+    # -----------------------------
+    # Local JSON fallback commented out
+    # -----------------------------
+    # history_file = Path(f"history_{user_email.replace('@','_')}.json")
+    # if history_file.exists():
+    #     with open(history_file, 'r') as f:
+    #         return jsonify(json.load(f))
+
+    return jsonify([])
+
+
+
+
 
 @app.route('/react', methods=['POST'])
 def react():
@@ -251,9 +274,6 @@ def react():
 @app.route('/reactions', methods=['GET'])
 def get_reactions():
     return jsonify({'thumbs_up': 0, 'thumbs_down': 0})
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 
 @app.route('/face', methods=['GET'])
@@ -283,3 +303,7 @@ def face_study_recommendation():
         'predicted_score': round(predicted_score, 1),
         'tips': tips
     })
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
