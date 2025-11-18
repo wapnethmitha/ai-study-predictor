@@ -1,37 +1,44 @@
 from deepface import DeepFace
 import cv2
-
+import time
 
 def analyze_face(frame):
     """
-    Analyze a single frame for emotion and attention.
-    Returns detected emotion or None if no face.
+    Analyze a single frame for emotion.
+    Returns detected emotion or None.
     """
     try:
         result = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
-        emotion = result['dominant_emotion']
-        return emotion
-    except Exception as e:
+        return result.get('dominant_emotion', None)
+    except:
         return None
 
-def capture_face_emotion():
+
+def capture_face_emotion(duration=3):
     """
-    Captures from webcam and returns dominant emotion continuously.
+    Captures webcam for a fixed duration (default 3 sec)
+    Returns list of detected emotions.
+    No need to press any keyboard key.
     """
     cap = cv2.VideoCapture(0)
     emotions = []
-    try:
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            emotion = analyze_face(frame)
-            if emotion:
-                emotions.append(emotion)
-            cv2.imshow("Face Capture - Press 'q' to stop", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-    finally:
-        cap.release()
-        cv2.destroyAllWindows()
+
+    start_time = time.time()
+
+    while time.time() - start_time < duration:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        emotion = analyze_face(frame)
+        if emotion:
+            emotions.append(emotion)
+
+        # Show window (optional)
+        cv2.imshow("Analyzing your focus...", frame)
+        cv2.waitKey(1)
+
+    cap.release()
+    cv2.destroyAllWindows()
+
     return emotions

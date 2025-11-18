@@ -5,6 +5,9 @@ env/
 ENV/
 *.venv
 ai-env/
+.env
+*.env
+__pycache__/
 
 # Python
 __pycache__/

@@ -13,6 +13,9 @@ from pathlib import Path
 from datetime import datetime
 from face_analyzer import capture_face_emotion
 from pathlib import Path
+import base64
+import cv2
+from face_analyzer import analyze_face
 
 load_dotenv()
 
@@ -27,20 +30,9 @@ except:
     SUPABASE_ENABLED = False
     print("⚠️ Supabase not configured. Using local storage only.")
 
-# Users database file (local fallback)
-USERS_FILE = Path("users.json")
 
-def load_users():
-    """Load users from JSON file"""
-    if USERS_FILE.exists():
-        with open(USERS_FILE, 'r') as f:
-            return json.load(f)
-    return {}
 
-def save_users(users):
-    """Save users to JSON file"""
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=2)
+
 
 def sync_user_to_supabase(email, username):
     """Sync user to Supabase database"""
@@ -109,19 +101,27 @@ def login():
         if not email or not password:
             return render_template('login.html', error="Email and password are required.")
 
-        users = load_users()
-        
-        # Check if user exists and password matches (local)
-        if email in users and users[email]['password'] == password:
-            session['user'] = email
-            session['username'] = users[email].get('username', email.split('@')[0])
-            session.permanent = True
-            app.permanent_session_lifetime = 86400  # 24 hours
-            return redirect(url_for('home'))
+        if SUPABASE_ENABLED:
+            try:
+                result = supabase.table("users").select("*").eq("email", email).execute()
+                user = result.data[0] if result.data else None
+
+                if user and user['password'] == password:
+                    session['user'] = email
+                    session['username'] = user.get('username', email.split('@')[0])
+                    session.permanent = True
+                    app.permanent_session_lifetime = 86400  # 24 hours
+                    return redirect(url_for('home'))
+                else:
+                    return render_template('login.html', error="Invalid email or password. Please register first.")
+            except Exception as e:
+                return render_template('login.html', error=f"Supabase error: {e}")
         else:
-            return render_template('login.html', error="Invalid email or password. Check your credentials or register first.")
-    
+            return render_template('login.html', error="Supabase not enabled.")
+
     return render_template('login.html')
+
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -129,42 +129,45 @@ def register():
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
 
+        # Basic validation
         if not email or not password:
             return render_template('login.html', error="Email and password are required.")
-        
         if len(password) < 6:
-            return render_template('login.html', error="Password must be at least 6 characters")
-        
+            return render_template('login.html', error="Password must be at least 6 characters.")
         if '@' not in email:
             return render_template('login.html', error="Invalid email format.")
 
-        users = load_users()
-        
-        # Check if user already exists
-        if email in users:
-            return render_template('login.html', error="Email already registered. Please login instead.")
-        
         username = email.split('@')[0]
-        
-        # Create new user in local storage
-        users[email] = {
-            'password': password,
-            'username': username,
-            'created_at': str(np.datetime64('today'))
-        }
-        save_users(users)
-        
-        # Sync to Supabase
-        sync_user_to_supabase(email, username)
-        
-        # Auto login after registration
-        session['user'] = email
-        session['username'] = username
-        session.permanent = True
-        app.permanent_session_lifetime = 86400
-        return redirect(url_for('home'))
-    
+
+        if SUPABASE_ENABLED:
+            try:
+                # Check if user already exists
+                result = supabase.table("users").select("*").eq("email", email).execute()
+                if result.data:
+                    return render_template('login.html', error="Email already registered. Please login instead.")
+
+                # Insert new user
+                supabase.table("users").insert({
+                    "email": email,
+                    "username": username,
+                    "password": password,
+                    "created_at": datetime.now().isoformat()
+                }).execute()
+
+                # Auto login
+                session['user'] = email
+                session['username'] = username
+                session.permanent = True
+                app.permanent_session_lifetime = 86400  # 24 hours
+                return redirect(url_for('home'))
+
+            except Exception as e:
+                return render_template('login.html', error=f"Supabase error: {e}")
+        else:
+            return render_template('login.html', error="Supabase not enabled.")
+
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
@@ -175,39 +178,54 @@ def logout():
 def predict():
     if 'user' not in session:
         return jsonify({'error': 'Please log in first.'})
-    
+
     try:
+        # Get JSON data from request
         data = request.json
-        hours_value = float(data['hours'])
-        
+        hours_value = float(data.get('hours', 0))
+
+        # Validate hours
         if hours_value < 0 or hours_value > 10:
             return jsonify({'error': 'Study hours should be between 0 and 10.'})
-        
+
+        # Predict score using the trained model
         predicted_score = model.predict(np.array([[hours_value]]))[0]
+
+        # Get study tips based on hours and predicted score
         tips = get_study_tips(hours_value, predicted_score)
-        return jsonify({'prediction': round(predicted_score, 1), 'tips': tips})
+
+        return jsonify({
+            'prediction': round(predicted_score, 1),
+            'tips': tips
+        })
+
     except Exception as e:
         return jsonify({'error': str(e)})
-    
+
 @app.route('/chat', methods=['POST'])
 def chat():
     if 'user' not in session:
         return jsonify({'response': 'Please log in first.'})
 
-    message = request.json.get('message', '').lower()
+    message = request.json.get('message', '').strip().lower()
     hours_val = extract_number(message)
-    response_text = "I didn't understand. Try: 'I study 5 hours', 'I need 80 score', or 'How many hours for 75?'"
+    response_text = (
+        "I didn't understand. Try: 'I study 5 hours', "
+        "'I need 80 score', or 'How many hours for 75?'"
+    )
 
     # -----------------------------
     # AI PREDICTION LOGIC
     # -----------------------------
     if 'study' in message and 'hours' in message and hours_val is not None:
         if 0 <= hours_val <= 10:
-            pred = model.predict(np.array([[hours_val]]))[0]
-            tips = get_study_tips(hours_val, pred)
+            predicted_score = model.predict(np.array([[hours_val]]))[0]
+            tips = get_study_tips(hours_val, predicted_score)
             tips_str = " | ".join(tips)
-            response_text = f"If you study {hours_val} hours, your predicted score is **{pred:.1f}** 🎯\n\n💡 Tips: {tips_str}"
-
+            response_text = (
+                f"If you study {hours_val} hours, your predicted score is {predicted_score:.1f} 🎯\n"
+                f"💡 Tips: {tips_str}"
+            )
     elif any(word in message for word in ['score', 'need', 'get', 'mark', 'for']) and hours_val is not None:
         if 20 <= hours_val <= 100:
             score_val = hours_val
@@ -215,19 +233,34 @@ def chat():
             hours_needed = max(0, min(10, hours_needed))
             tips = get_study_tips(hours_needed, score_val)
             tips_str = " | ".join(tips)
-            response_text = f"To get a score of **{score_val}**, you need to study approximately **{hours_needed:.1f} hours** ⏱️\n\n💡 Tips: {tips_str}"
+            response_text = (
+                f"To get a score of {score_val}, you need to study approximately {hours_needed:.1f} hours ⏱️\n"
+                f"💡 Tips: {tips_str}"
+            )
 
     # -----------------------------
-    # SAVE TO SUPABASE
+    # SAVE TO SUPABASE USING user_id
     # -----------------------------
     if SUPABASE_ENABLED:
         try:
-            supabase.table("chats").insert({
-                "user_email": session['user'],
+            # Fetch user_id once
+            user_data = supabase.table("users").select("id").eq("email", session['user']).execute()
+            if not user_data.data:
+                print("❌ User not found in Supabase")
+                return jsonify({'response': response_text})  # fallback if user not found
+
+            user_id = str(user_data.data[0]["id"])  # convert UUID to string
+
+            # Insert chat
+            result = supabase.table("chats").insert({
+                "user_id": user_id,
                 "message": message,
                 "response": response_text,
                 "created_at": datetime.now().isoformat()
             }).execute()
+
+            print("Supabase insert result:", result)
+
         except Exception as e:
             print("❌ Supabase save failed:", e)
 
@@ -237,29 +270,30 @@ def chat():
 @app.route('/history')
 def history():
     if 'user' not in session:
-        return jsonify([])
-
-    user_email = session['user']
+        return jsonify([])  # User not logged in
 
     if SUPABASE_ENABLED:
         try:
-            data = supabase.table("chats") \
-                .select("*") \
-                .eq("user_email", user_email) \
-                .order("created_at", ascending=True) \
+            # Get user_id from session email
+            user_data = supabase.table("users").select("id").eq("email", session['user']).execute()
+            if not user_data.data:
+                print("❌ User not found in Supabase")
+                return jsonify([])  # No user found
+
+            user_id = str(user_data.data[0]["id"])  # convert UUID to string
+
+            # Fetch chats by user_id
+            chats = supabase.table("chats").select("*") \
+                .eq("user_id", user_id) \
+                .order("created_at", desc=False) \
                 .execute()
-            return jsonify(data.data)
+
+            print(f"Fetched {len(chats.data)} chats for user {session['user']}")
+            return jsonify(chats.data)
+
         except Exception as e:
             print("❌ Failed to load history:", e)
             return jsonify([])
-
-    # -----------------------------
-    # Local JSON fallback commented out
-    # -----------------------------
-    # history_file = Path(f"history_{user_email.replace('@','_')}.json")
-    # if history_file.exists():
-    #     with open(history_file, 'r') as f:
-    #         return jsonify(json.load(f))
 
     return jsonify([])
 
@@ -267,43 +301,117 @@ def history():
 
 
 
+
+
 @app.route('/react', methods=['POST'])
 def react():
-    return jsonify({'success': True, 'reactions': {'thumbs_up': 0, 'thumbs_down': 0}})
+    if 'user' not in session:
+        return jsonify({'error': 'Please log in first.'})
+
+    data = request.json
+    chat_id = data.get('chat_id')
+    thumbs_up = data.get('thumbs_up', 0)
+    thumbs_down = data.get('thumbs_down', 0)
+
+    if SUPABASE_ENABLED:
+        try:
+            # Get user_id from email
+            user_data = supabase.table("users").select("id").eq("email", session['user']).execute()
+            user_id = user_data.data[0]["id"] if user_data.data else None
+
+            if user_id:
+                supabase.table("reactions").insert({
+                    "user_id": user_id,
+                    "chat_id": chat_id,
+                    "thumbs_up": thumbs_up,
+                    "thumbs_down": thumbs_down,
+                    "created_at": datetime.now().isoformat()
+                }).execute()
+            else:
+                print("❌ Could not find user ID for reaction insert")
+
+        except Exception as e:
+            print("❌ Failed to save reaction:", e)
+            return jsonify({'success': False, 'error': str(e)})
+
+    return jsonify({'success': True})
+
 
 @app.route('/reactions', methods=['GET'])
 def get_reactions():
+    chat_id = request.args.get('chat_id')
+
+    if SUPABASE_ENABLED:
+        try:
+            query = supabase.table("reactions").select("*")
+            if chat_id:
+                query = query.eq("chat_id", chat_id)
+            result = query.execute()
+            data = result.data
+
+            thumbs_up_total = sum(item.get("thumbs_up", 0) for item in data)
+            thumbs_down_total = sum(item.get("thumbs_down", 0) for item in data)
+
+            return jsonify({'thumbs_up': thumbs_up_total, 'thumbs_down': thumbs_down_total})
+        except Exception as e:
+            print("❌ Failed to fetch reactions:", e)
+            return jsonify({'thumbs_up': 0, 'thumbs_down': 0, 'error': str(e)})
+
     return jsonify({'thumbs_up': 0, 'thumbs_down': 0})
 
 
-@app.route('/face', methods=['GET'])
-def face_study_recommendation():
-    """
-    Opens webcam, detects emotions, and recommends study hours.
-    """
-    emotions = capture_face_emotion()
-    if not emotions:
-        return jsonify({'recommendation': "No face detected. Please try again."})
+@app.route('/analyze_face', methods=['POST'])
+def analyze_face_route():
+    try:
+        data = request.json
+        img_data = data.get("image", "")
 
-    # Simple logic: if 'sad', 'angry', or 'disgust' -> suggest shorter session
-    focus_score = sum([1 if e in ['happy', 'neutral'] else 0 for e in emotions]) / len(emotions)
-    if focus_score > 0.7:
-        recommended_hours = 4 + focus_score*2  # 4-6 hours
-    elif focus_score > 0.4:
-        recommended_hours = 2 + focus_score*2  # 2-4 hours
-    else:
-        recommended_hours = 1 + focus_score*1  # 1-2 hours
+        if not img_data:
+            return jsonify({"error": "No image received"}), 400
 
-    # Predict score using existing linear model
-    predicted_score = model.predict(np.array([[recommended_hours]]))[0]
-    tips = get_study_tips(recommended_hours, predicted_score)
+        # Remove "data:image/jpeg;base64,"
+        img_str = img_data.split(",")[1]
 
-    return jsonify({
-        'recommended_hours': round(recommended_hours, 1),
-        'predicted_score': round(predicted_score, 1),
-        'tips': tips
-    })
+        # Decode base64 → bytes
+        img_bytes = base64.b64decode(img_str)
 
+        # Convert bytes → numpy array
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+
+        # Decode image
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        if frame is None:
+            return jsonify({"error": "Invalid image format"}), 400
+
+        # Analyze face emotion
+        emotion = analyze_face(frame)
+
+        if emotion is None:
+            return jsonify({
+                "focus": "Unknown",
+                "recommended_hours": 0
+            })
+
+        # Generate recommended hours based on emotion
+        recommended_hours = {
+            "happy": 4,
+            "neutral": 5,
+            "sad": 2,
+            "angry": 3,
+            "fear": 3,
+            "surprise": 4,
+            "disgust": 2
+        }.get(emotion, 4)
+
+        return jsonify({
+            "focus": emotion.capitalize(),
+            "recommended_hours": recommended_hours
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+    
 if __name__ == '__main__':
     app.run(debug=True)
 
