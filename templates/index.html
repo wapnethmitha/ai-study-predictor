@@ -5,6 +5,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+
+
+    
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -42,7 +45,7 @@
         <!-- Face Analyzer Section -->
         <div class="predictor2">
             <h2 style="margin-top: 0;">📸 Face Analysis</h2>
-            <button id="faceButton">Analyze My Focus/Emotion</button>
+            <button id="faceButton" class="highlight-btn">Analyze My Focus/Emotion</button>
             <div id="faceResult"></div>
         </div>
 
@@ -165,58 +168,63 @@
         }
 
         function predict() {
-            let hoursInput = document.getElementById('hoursInput').value.trim().toLowerCase();
-            
-            if (!hoursInput) {
-                alert('Please enter study hours');
-                return;
-            }
-            
-            let hours = parseFloat(hoursInput);
-            
-            if (isNaN(hours)) {
-                hours = wordToNumber[hoursInput];
-                if (!hours) {
-                    for (let word in wordToNumber) {
-                        if (hoursInput.includes(word)) {
-                            hours = wordToNumber[word];
-                            break;
-                        }
-                    }
+    let hoursInput = document.getElementById('hoursInput').value.trim().toLowerCase();
+    
+    if (!hoursInput) {
+        alert('Please enter study hours');
+        return;
+    }
+
+    let hours = parseFloat(hoursInput);
+    
+    if (isNaN(hours)) {
+        hours = wordToNumber[hoursInput];
+        if (!hours) {
+            for (let word in wordToNumber) {
+                if (hoursInput.includes(word)) {
+                    hours = wordToNumber[word];
+                    break;
                 }
             }
-            
-            if (isNaN(hours) || hours === undefined) {
-                alert('Please enter a valid number');
-                return;
-            }
-            
-            fetch('/predict', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({hours: hours})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-                let tipsHTML = '<div class="tips-section"><strong>💡 Study Tips:</strong><ul>';
-                data.tips.forEach(tip => {
-                    tipsHTML += `<li>${formatMessage(tip)}</li>`;
-                });
-                tipsHTML += '</ul></div>';
-                
-                document.getElementById('result').innerHTML = 
-                    `<p class="success">If you study <strong>${hours}</strong> hours → Score: <strong>${data.prediction}</strong></p>
-                    ${tipsHTML}
-                    <div class="reaction-buttons">
-                        <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
-                        <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
-                    </div>`;
-            });
         }
+    }
+    
+    if (isNaN(hours) || hours === undefined) {
+        alert('Please enter a valid number');
+        return;
+    }
+    
+    fetch('/predict', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({hours: hours})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        let tipsHTML = '<div class="tips-section"><strong>💡 Study Tips:</strong><ul>';
+        data.tips.forEach(tip => {
+            tipsHTML += `<li>${formatMessage(tip)}</li>`;
+        });
+        tipsHTML += '</ul></div>';
+        
+        // Update result here AFTER fetch
+        document.getElementById('result').innerHTML = 
+            `<div class="prediction-card">
+                If you study <strong>${hours}</strong> hours → Score: <strong>${data.prediction}</strong>
+            </div>
+            ${tipsHTML}
+            <div class="reaction-buttons">
+                <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
+                <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
+            </div>`;
+    });
+}
+
 
         function sendChat() {
             let message = document.getElementById('chatInput').value.trim();
@@ -281,7 +289,33 @@ document.getElementById('faceButton').addEventListener('click', async () => {
             // Stop webcam
             stream.getTracks().forEach(track => track.stop());
 
-            faceResultDiv.innerHTML = 'Analyzing... ⏳';
+// Show analyzing message
+faceResultDiv.innerHTML = `<div class="face-card" style="background: var(--card-bg); color: var(--text-primary);">Analyzing... ⏳</div>`;
+
+// Give the browser a moment to repaint
+setTimeout(async () => {
+    // Send image to backend
+    const response = await fetch('/analyze_face', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imgData })
+    });
+    const data = await response.json();
+
+    // Show results
+    faceResultDiv.innerHTML = `
+        <div class="face-card">
+            <h3>🎯 Predicted Focus</h3>
+            <p><strong>${data.focus}</strong></p>
+            <h3>⏱ Recommended Study Hours</h3>
+            <p><strong>${data.recommended_hours} hours</strong></p>
+            <div class="reaction-buttons">
+                <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
+                <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
+            </div>
+        </div>
+    `;
+}, 50); // 50ms is enough for a repaint
 
             // Send image to backend
             const response = await fetch('/analyze_face', {
@@ -292,8 +326,20 @@ document.getElementById('faceButton').addEventListener('click', async () => {
             const data = await response.json();
 
             // Show results
-            faceResultDiv.innerHTML = `<p>Predicted Focus: <strong>${data.focus}</strong></p>
-                                       <p>Recommended Study Hours: <strong>${data.recommended_hours}</strong></p>`;
+            // Show results
+faceResultDiv.innerHTML = `
+    <div class="face-card">
+        <h3>🎯 Predicted Focus</h3>
+        <p><strong>${data.focus}</strong></p>
+        <h3>⏱ Recommended Study Hours</h3>
+        <p><strong>${data.recommended_hours} hours</strong></p>
+        <div class="reaction-buttons">
+            <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
+            <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
+        </div>
+    </div>
+`;
+
         }, 3000);
 
     } catch (err) {

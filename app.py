@@ -297,12 +297,6 @@ def history():
 
     return jsonify([])
 
-
-
-
-
-
-
 @app.route('/react', methods=['POST'])
 def react():
     if 'user' not in session:
@@ -414,4 +408,3 @@ def analyze_face_route():
     
 if __name__ == '__main__':
     app.run(debug=True)
-

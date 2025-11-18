@@ -3,14 +3,25 @@ import cv2
 import time
 
 def analyze_face(frame):
-    """
-    Analyze a single frame for emotion.
-    Returns detected emotion or None.
-    """
     try:
-        result = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
-        return result.get('dominant_emotion', None)
-    except:
+        result = DeepFace.analyze(
+            frame,
+            actions=['emotion'],
+            enforce_detection=False
+        )
+
+        print("DeepFace raw result:", result)
+
+        # New DeepFace versions return list
+        if isinstance(result, list):
+            result = result[0]
+
+        emotion = result.get("dominant_emotion")
+        print("Detected emotion:", emotion)
+        return emotion
+
+    except Exception as e:
+        print("DeepFace error:", e)
         return None
 
 
