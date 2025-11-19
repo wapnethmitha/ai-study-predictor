@@ -29,26 +29,25 @@
             </div>
         </div>
         
-        <div class="performance">
-            <h2>📊 Model Performance</h2>
-            <p><strong>Test MSE:</strong> <span>{{ mse }}</span></p>
-            <p><strong>Test R²:</strong> <span>{{ r2 }}</span></p>
+
+        <!-- SECTION 1: TOP LAYOUT -->
+        <div class="top-section">
+            
+            <!-- LEFT: HERO IMAGE -->
+            <div class="hero-left">
+            <img src="{{ url_for('static', filename='heroimg.png') }}" alt="Study Image">
+            </div>
+
+            <!-- RIGHT: FACE ANALYZER -->
+            <div class="face-right">
+                <h2>📸 Face Analysis</h2>
+                <button id="faceButton" class="highlight-btn">Analyze My Focus/Emotion</button>
+                <div id="faceResult"></div>
+            </div>
+
         </div>
 
-        <!-- Predictor Section -->
-        <div class="predictor">
-            <h2>🔮 Quick Predict</h2>
-            <input type="text" id="hoursInput" placeholder="Enter study hours (e.g., 5 or five)">
-            <button onclick="predict()">Predict Score</button>
-            <div id="result"></div>
-        </div>
-        <!-- Face Analyzer Section -->
-        <div class="predictor2">
-            <h2 style="margin-top: 0;">📸 Face Analysis</h2>
-            <button id="faceButton" class="highlight-btn">Analyze My Focus/Emotion</button>
-            <div id="faceResult"></div>
-        </div>
-
+        <div class="chat-bottom">
         <!-- Chat Section -->
         <div class="chat-section">
             <h2>💬 AI Assistant</h2>
@@ -61,6 +60,7 @@
                 <input type="text" id="chatInput" placeholder="Ask about your study hours..." onkeypress="if(event.key==='Enter') sendChat()">
                 <button onclick="sendChat()">Send</button>
             </div>
+        </div>
         </div>
     </div>
 
@@ -317,28 +317,8 @@ setTimeout(async () => {
     `;
 }, 50); // 50ms is enough for a repaint
 
-            // Send image to backend
-            const response = await fetch('/analyze_face', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imgData })
-            });
-            const data = await response.json();
 
-            // Show results
-            // Show results
-faceResultDiv.innerHTML = `
-    <div class="face-card">
-        <h3>🎯 Predicted Focus</h3>
-        <p><strong>${data.focus}</strong></p>
-        <h3>⏱ Recommended Study Hours</h3>
-        <p><strong>${data.recommended_hours} hours</strong></p>
-        <div class="reaction-buttons">
-            <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
-            <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
-        </div>
-    </div>
-`;
+
 
         }, 3000);
 
@@ -347,7 +327,53 @@ faceResultDiv.innerHTML = `
         faceResultDiv.innerHTML = 'Error accessing webcam ❌';
     }
 });
+// QUICK PREDICT POPUP CONTROL
+document.addEventListener("DOMContentLoaded", function () {
+    const btn = document.getElementById("quickPredictBtn");
+    const modal = document.getElementById("predictModal");
+
+    if (btn) {
+        btn.addEventListener("click", () => {
+            modal.classList.remove("hidden");
+        });
+    }
+});
+
+function closePredictModal() {
+    document.getElementById("predictModal").classList.add("hidden");
+}
+
 
     </script>
+  
+    <!-- Floating Quick Predict Button -->
+<button id="quickPredictBtn" class="floating-btn">🔮 Quick Predict</button>
+<!-- QUICK PREDICT POPUP MODAL -->
+<div id="predictModal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closePredictModal()">&times;</span>
+        
+        <h2>🔮 Quick Predict</h2>
+
+        <label>Enter Study Hours:</label>
+        <input type="number" id="hoursInput" placeholder="e.g., 4">
+
+        <button class="predict-btn" onclick="predict()">Predict Score</button>
+
+        <div id="result"></div>
+    </div>
+</div>
+<!-- ===================== -->
+<!-- FOOTER: MODEL PERFORMANCE -->
+<!-- ===================== -->
+<footer class="footer">
+    <div class="performance">
+        <h2>📊 Model Performance</h2>
+        <p><strong>Test MSE:</strong> <span>{{ mse }}</span></p>
+        <p><strong>Test R²:</strong> <span>{{ r2 }}</span></p>
+    </div>
+</footer>
+
+
 </body>
 </html>

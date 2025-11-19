@@ -285,7 +285,7 @@ def history():
             # Fetch chats by user_id
             chats = supabase.table("chats").select("*") \
                 .eq("user_id", user_id) \
-                .order("created_at", desc=False) \
+                .order("created_at", desc=True) \
                 .execute()
 
             print(f"Fetched {len(chats.data)} chats for user {session['user']}")
