@@ -44,7 +44,7 @@
             <div class="face-right">
                 <h2>👋 Hello, I’m Neo!</h2>
                 <div class="mood-card" id="moodCard">
-                    <p>Make sure your face is clearly visible in the camera. I’ll tell you your current mood and suggest how many hours you should study!</p>
+                    <p>Make sure your face is clearly visible in the camera. I’ll tell you your current mood!</p>
                     
                     <!-- Initial Button -->
                     <button id="showMoodBtn" class="highlight-btn">Show My Mood</button>
@@ -59,7 +59,8 @@
                         <div class="mood-result hidden">
                             <h3>🎯 Predicted Focus</h3>
                             <p id="focusText"><strong>Loading...</strong></p>
-                            <h3>⏱ Recommended Study Hours</h3>
+                            <h3>💡 Motivation & Advice</h3>
+
                             <p id="hoursText"><strong>0 hours</strong></p>
                             
                             <button id="checkAgainBtn" class="highlight-btn">Done</button>
@@ -334,7 +335,8 @@
 
                     moodResult.classList.remove('hidden');
                     document.getElementById('focusText').innerHTML = `<strong>${data.focus}</strong>`;
-                    document.getElementById('hoursText').innerHTML = `<strong>${data.recommended_hours} hours</strong>`;
+                    document.getElementById('hoursText').innerHTML = `<strong>${data.message}</strong>`;
+
                 }, 500);
 
             }, 3000);

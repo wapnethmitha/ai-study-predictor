@@ -416,19 +416,19 @@ def analyze_face_route():
             })
 
         # Generate recommended hours based on emotion
-        recommended_hours = {
-            "happy": 4,
-            "neutral": 5,
-            "sad": 2,
-            "angry": 3,
-            "fear": 3,
-            "surprise": 4,
-            "disgust": 2
-        }.get(emotion, 4)
-
+        responses = {
+    "happy": "You look happy! 😄 Great energy—use it to tackle challenging topics today!",
+    "neutral": "You look calm and neutral 🙂. A steady mindset is perfect for focused studying!",
+    "sad": "You seem a bit sad 😔 Take a short break, breathe, maybe listen to calm music, then start with light revision. You got this! 💪",
+    "angry": "Looks like you're feeling frustrated 😤 Try relaxing for a bit, maybe take a walk. Start studying once you're calmer.",
+    "fear": "You seem a bit anxious 😟 It's okay! Break tasks into smaller pieces and start slowly. You can do this! ",
+    "surprise": "You look surprised 😯 Maybe something broke your focus—regain calm and continue at your pace!",
+    "disgust": "You don't seem motivated 🤢 Try changing topics or your study environment for a fresh mindset."
+    }
+        message = responses.get(emotion, "Stay focused and do your best! 💡")
         return jsonify({
             "focus": emotion.capitalize(),
-            "recommended_hours": recommended_hours
+            "message": message  # <-- Updated field
         })
 
     except Exception as e:
