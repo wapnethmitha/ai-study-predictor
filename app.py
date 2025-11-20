@@ -16,6 +16,7 @@ from pathlib import Path
 import base64
 import cv2
 from face_analyzer import analyze_face
+from flask import request, jsonify, session
 
 load_dotenv()
 
@@ -265,6 +266,33 @@ def chat():
             print("❌ Supabase save failed:", e)
 
     return jsonify({'response': response_text})
+
+@app.route('/clear_history', methods=['POST'])
+def clear_history():
+    if 'user' not in session:
+        return jsonify({"success": False, "error": "User not logged in"})
+
+    user_email = session['user']
+
+    try:
+        # Fetch user_id from users table
+        user_data = supabase.table("users").select("id").eq("email", user_email).single().execute()
+        user_id = user_data.data.get("id")
+
+        print("🗑 Clearing chat history for user_id:", user_id)
+
+        # Delete chats using user_id
+        supabase.table("chats").delete().eq("user_id", user_id).execute()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("❌ Error clearing chat:", e)
+        return jsonify({"success": False, "error": str(e)})
+
+
+
+
 
 
 @app.route('/history')

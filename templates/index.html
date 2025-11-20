@@ -12,7 +12,7 @@
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <h1>🎓 EduPredict</h1>
+                <h1>EduPredict</h1>
             </div>
 
             <div class="header-right">
@@ -35,32 +35,69 @@
             
             <!-- LEFT: HERO IMAGE -->
             <div class="hero-left">
-            <img src="{{ url_for('static', filename='heroimg.png') }}" alt="Study Image">
+                <img src="{{ url_for('static', filename='heroimg.png') }}" alt="Study Image">
             </div>
 
+            <!-- MIDDLE: VERTICAL LINE -->
+            <div class="divider"></div>
             <!-- RIGHT: FACE ANALYZER -->
             <div class="face-right">
-                <h2>📸 Face Analysis</h2>
-                <button id="faceButton" class="highlight-btn">Analyze My Focus/Emotion</button>
-                <div id="faceResult"></div>
+                <h2>👋 Hello, I’m Neo!</h2>
+                <div class="mood-card" id="moodCard">
+                    <p>Make sure your face is clearly visible in the camera. I’ll tell you your current mood and suggest how many hours you should study!</p>
+                    
+                    <!-- Initial Button -->
+                    <button id="showMoodBtn" class="highlight-btn">Show My Mood</button>
+                    
+                    <!-- Webcam & Result -->
+                    <div id="analyzeSection" class="hidden">
+                        <div class="webcam-frame">
+                            <video id="webcamVideo" autoplay></video>
+                            <div class="overlay-text">🔎 Neo is analyzing your mood...</div>
+                        </div>
+                        
+                        <div class="mood-result hidden">
+                            <h3>🎯 Predicted Focus</h3>
+                            <p id="focusText"><strong>Loading...</strong></p>
+                            <h3>⏱ Recommended Study Hours</h3>
+                            <p id="hoursText"><strong>0 hours</strong></p>
+                            
+                            <button id="checkAgainBtn" class="highlight-btn">Done</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            </div>
+
             </div>
 
         </div>
+
 
         <div class="chat-bottom">
         <!-- Chat Section -->
         <div class="chat-section">
-            <h2>💬 AI Assistant</h2>
-            <div id="chatBox" class="chat-box">
-                <div class="chat-message bot">
-                    <p>👋 Hi <strong>{{ username }}</strong>! I'm your AI study assistant. Ask me:<br><br>• "I study 6 hours"<br>• "How many hours for 80?"<br>• "What score for 5 hours?"</p>
-                </div>
-            </div>
-            <div class="chat-input-wrapper">
-                <input type="text" id="chatInput" placeholder="Ask about your study hours..." onkeypress="if(event.key==='Enter') sendChat()">
-                <button onclick="sendChat()">Send</button>
-            </div>
+    <h2>💬 AI Assistant</h2>
+    <div id="chatBox" class="chat-box">
+        <div class="chat-message bot">
+            <p>💬 You want to chat more with me? Feel free to ask! I'm still under training, so ask in a way I can easily understand hehe.<br><br>
+            • "I study 6 hours"<br>
+            • "How many hours for 80?"<br>
+            • "What score for 5 hours?"</p>
         </div>
+    </div>
+
+    <!-- Clear Chat History Button -->
+    <button id="clearChatBtn" class="highlight-btn" style="margin-top: 10px;">🧹 Clear Chat History</button>
+
+    <div class="chat-input-wrapper">
+        <input type="text" id="chatInput" placeholder="Ask about your study hours..." onkeypress="if(event.key==='Enter') sendChat()">
+        <button onclick="sendChat()">Send</button>
+    </div>
+</div>
+
         </div>
     </div>
 
@@ -260,73 +297,74 @@
         }
 
         // Face Analysis
-document.getElementById('faceButton').addEventListener('click', async () => {
-    const faceResultDiv = document.getElementById('faceResult');
-    faceResultDiv.innerHTML = 'Opening webcam... 🎥';
+    const showMoodBtn = document.getElementById('showMoodBtn');
+    const analyzeSection = document.getElementById('analyzeSection');
+    const moodResult = analyzeSection.querySelector('.mood-result');
+    const checkAgainBtn = document.getElementById('checkAgainBtn');
+    const webcamVideo = document.getElementById('webcamVideo');
 
-    try {
-        // Ask for webcam permission
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.autoplay = true;
-        video.width = 320;
-        video.height = 240;
-        faceResultDiv.innerHTML = '';
-        faceResultDiv.appendChild(video);
+    showMoodBtn.addEventListener('click', async () => {
+        showMoodBtn.classList.add('hidden');
+        analyzeSection.classList.remove('hidden');
+        moodResult.classList.add('hidden');
 
-        // Wait 3 seconds to capture
-        setTimeout(async () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            webcamVideo.srcObject = stream;
 
-            // Convert image to base64
-            const imgData = canvas.toDataURL('image/jpeg');
+            setTimeout(async () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = webcamVideo.videoWidth;
+                canvas.height = webcamVideo.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(webcamVideo, 0, 0, canvas.width, canvas.height);
+                const imgData = canvas.toDataURL('image/jpeg');
 
-            // Stop webcam
-            stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(track => track.stop());
 
-// Show analyzing message
-faceResultDiv.innerHTML = `<div class="face-card" style="background: var(--card-bg); color: var(--text-primary);">Analyzing... ⏳</div>`;
+                analyzeSection.querySelector('.overlay-text').textContent = '🔎 Neo is analyzing your mood...';
 
-// Give the browser a moment to repaint
-setTimeout(async () => {
-    // Send image to backend
-    const response = await fetch('/analyze_face', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imgData })
+                setTimeout(async () => {
+                    const response = await fetch('/analyze_face', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: imgData })
+                    });
+                    const data = await response.json();
+
+                    moodResult.classList.remove('hidden');
+                    document.getElementById('focusText').innerHTML = `<strong>${data.focus}</strong>`;
+                    document.getElementById('hoursText').innerHTML = `<strong>${data.recommended_hours} hours</strong>`;
+                }, 500);
+
+            }, 3000);
+        } catch (err) {
+            console.error(err);
+            analyzeSection.querySelector('.overlay-text').textContent = '❌ Error accessing webcam';
+        }
     });
-    const data = await response.json();
 
-    // Show results
-    faceResultDiv.innerHTML = `
-        <div class="face-card">
-            <h3>🎯 Predicted Focus</h3>
-            <p><strong>${data.focus}</strong></p>
-            <h3>⏱ Recommended Study Hours</h3>
-            <p><strong>${data.recommended_hours} hours</strong></p>
-            <div class="reaction-buttons">
-                <button class="reaction-btn" onclick="addReaction('thumbs_up')">👍 Helpful</button>
-                <button class="reaction-btn" onclick="addReaction('thumbs_down')">👎 Not helpful</button>
-            </div>
-        </div>
-    `;
-}, 50); // 50ms is enough for a repaint
+    checkAgainBtn.addEventListener('click', () => {
+        moodResult.classList.add('hidden');
+        showMoodBtn.classList.remove('hidden');
+        analyzeSection.classList.add('hidden');
+    });
 
 
-
-
-        }, 3000);
-
-    } catch (err) {
-        console.error(err);
-        faceResultDiv.innerHTML = 'Error accessing webcam ❌';
-    }
+checkAgainBtn.addEventListener('click', () => {
+    moodResult.classList.add('hidden');
+    showMoodBtn.classList.remove('hidden');
+    analyzeSection.classList.add('hidden');
 });
+
+
+        checkAgainBtn.addEventListener('click', () => {
+            moodResult.classList.add('hidden');
+            showMoodBtn.classList.remove('hidden');
+            analyzeSection.classList.add('hidden');
+        });
+
+
 // QUICK PREDICT POPUP CONTROL
 document.addEventListener("DOMContentLoaded", function () {
     const btn = document.getElementById("quickPredictBtn");
@@ -342,12 +380,30 @@ document.addEventListener("DOMContentLoaded", function () {
 function closePredictModal() {
     document.getElementById("predictModal").classList.add("hidden");
 }
+// Clear Chat History
+document.getElementById("clearChatBtn").addEventListener("click", () => {
+    if (!confirm("Are you sure you want to clear your chat history?")) return;
+
+    fetch("/clear_history", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("chatBox").innerHTML = "";
+                alert("Chat history cleared successfully!");
+            } else {
+                alert("Failed to clear history.");
+            }
+        });
+});
+
+
+
 
 
     </script>
   
     <!-- Floating Quick Predict Button -->
-<button id="quickPredictBtn" class="floating-btn">🔮 Quick Predict</button>
+<button id="quickPredictBtn" class="floating-btn">Quick Predict!</button>
 <!-- QUICK PREDICT POPUP MODAL -->
 <div id="predictModal" class="modal hidden">
     <div class="modal-content">
